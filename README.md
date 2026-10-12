@@ -27,7 +27,13 @@ macOS attributes file access to the app that *launched* a process, so an MCP ser
 
 Requires macOS 13+ and Day One for Mac.
 
-Open **Day One MCP Plus**. Its setup window walks through three steps:
+```bash
+brew install --cask bhrigu123/tap/dayone-mcp-plus
+```
+
+Or download the zip from [Releases](https://github.com/bhrigu123/dayone-mcp-plus/releases) and move the app to Applications.
+
+Then open **Day One MCP Plus**. Its setup window walks through three steps:
 
 1. **Background helper**: turns on automatically (it appears under System Settings → General → Login Items).
 2. **Full Disk Access**: click *Open Settings* and turn on Day One MCP Plus.
@@ -52,7 +58,10 @@ The bundled executable also has a small CLI: `dayone-mcp-plus status | register 
 
 ## Releasing
 
-`scripts/release.sh` builds a Developer ID–signed, notarized zip in `dist/` that others can install without Gatekeeper warnings. It needs a Developer ID Application certificate and notarization credentials; see the comments at the top of the script for the one-time setup.
+1. Bump `Config.version` and commit.
+2. Run `scripts/publish.sh`. It builds a Developer ID–signed, notarized zip (`scripts/release.sh`), tags the commit, creates the GitHub release, and updates `Casks/dayone-mcp-plus.rb` in [bhrigu123/homebrew-tap](https://github.com/bhrigu123/homebrew-tap).
+
+One-time setup: a Developer ID Application certificate and notarization credentials (see the comments at the top of `scripts/release.sh`).
 
 ## Tools
 
