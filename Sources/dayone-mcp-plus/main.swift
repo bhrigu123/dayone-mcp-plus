@@ -89,6 +89,8 @@ case "status":
     print("Background helper: \(statusText(Service.status))")
     print("Full Disk Access: \(Service.hasAccessInFreshProcess() ? "granted" : "not granted")")
     print("Unlock window: \(Config.unlockMinutes) min")
+case "agent-instructions":
+    print(SetupModel().agentInstructions)
 case "snapshot-setup":
     Setup.snapshot(to: arguments.count > 1 ? arguments[1] : "setup.png")
 case "check-access":

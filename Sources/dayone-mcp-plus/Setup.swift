@@ -92,6 +92,7 @@ final class SetupModel: ObservableObject {
     let executable = Bundle.main.executablePath ?? "dayone-mcp-plus"
     var claudeCommand: String { "claude mcp add dayone -s user -- \"\(executable)\" mcp" }
     var codexCommand: String { "codex mcp add dayone -- \"\(executable)\" mcp" }
+    var codexTOML: String { "[mcp_servers.dayone]\ncommand = \"\(executable)\"\nargs = [\"mcp\"]" }
     var jsonConfig: String { "\"dayone\": { \"command\": \"\(executable)\", \"args\": [\"mcp\"] }" }
 
     /// For pasting into an AI agent so it adds the server to its own MCP config.
@@ -106,7 +107,9 @@ final class SetupModel: ObservableObject {
 
         Use your usual way of adding a user-level MCP server, for example:
         - Claude Code: \(claudeCommand)
-        - Codex: \(codexCommand)
+        - ChatGPT or Codex: \(codexCommand)
+          If the codex command isn't available, add this to ~/.codex/config.toml instead:
+          \(codexTOML.replacingOccurrences(of: "\n", with: "\n  "))
         - Others: add \(jsonConfig) under "mcpServers" in your MCP config file
 
         Don't change anything else. Then tell me to restart you so it loads. After the restart, call \
@@ -202,7 +205,7 @@ struct SetupView: View {
             }
             VStack(alignment: .leading, spacing: 8) {
                 copyRow("Claude Code", model.claudeCommand)
-                copyRow("Codex", model.codexCommand)
+                copyRow("ChatGPT / Codex", model.codexCommand)
                 copyRow("Other apps", model.jsonConfig)
             }
             .padding(.leading, 34)
@@ -260,7 +263,7 @@ struct SetupView: View {
 
     private func copyRow(_ label: String, _ text: String) -> some View {
         HStack(spacing: 8) {
-            Text(label).font(.callout).frame(width: 90, alignment: .leading)
+            Text(label).font(.callout).frame(width: 118, alignment: .leading)
             Text(text)
                 .font(.system(.caption, design: .monospaced))
                 .lineLimit(1)
