@@ -1,4 +1,4 @@
-// Draws the app icon: a journal with a keyhole, centred on an indigo squircle.
+// Draws the app icon: an open journal with a keyhole on its spine, on an indigo squircle.
 // Usage: swift scripts/make-icon.swift <output.png>   (1024×1024)
 import AppKit
 
@@ -26,20 +26,56 @@ body.fill()
 NSGraphicsContext.restoreGraphicsState()
 NSGradient(starting: color(0x7C6CF8), ending: color(0x2E2A7A))!.draw(in: body, angle: -90)
 
-// Journal: white cover centred on the canvas.
-let book = NSRect(x: 512 - 220, y: 512 - 280, width: 440, height: 560)
-let cover = NSBezierPath(roundedRect: book, xRadius: 52, yRadius: 52)
+// Open journal: two pages meeting at a centre spine, with a lavender page stack below for depth.
+func page(_ side: CGFloat, inset: CGFloat, drop: CGFloat) -> NSBezierPath {
+    // side = -1 for the left page, +1 for the right; mirrored so the book is symmetric.
+    let spineTop = NSPoint(x: 512, y: 700 - drop), spineBottom = NSPoint(x: 512, y: 318 - drop)
+    let outerTop = NSPoint(x: 512 + side * (262 - inset), y: 742 - drop)
+    let outerBottom = NSPoint(x: 512 + side * (262 - inset), y: 352 - drop)
+    let path = NSBezierPath()
+    path.move(to: spineTop)
+    path.curve(to: outerTop, controlPoint1: NSPoint(x: 512 + side * 80, y: 744 - drop),
+               controlPoint2: NSPoint(x: 512 + side * 170, y: 752 - drop))
+    path.line(to: outerBottom)
+    path.curve(to: spineBottom, controlPoint1: NSPoint(x: 512 + side * 170, y: 362 - drop),
+               controlPoint2: NSPoint(x: 512 + side * 80, y: 356 - drop))
+    path.close()
+    return path
+}
+
 NSGraphicsContext.saveGraphicsState()
 let bookShadow = NSShadow()
-bookShadow.shadowColor = color(0x000000, 0.22)
+bookShadow.shadowColor = color(0x000000, 0.25)
 bookShadow.shadowOffset = NSSize(width: 0, height: -14)
 bookShadow.shadowBlurRadius = 30
 bookShadow.set()
-color(0xFAF9FF).setFill()
-cover.fill()
+color(0xC9C2FA).setFill()
+for side in [CGFloat(-1), 1] { page(side, inset: -10, drop: 34).fill() }
 NSGraphicsContext.restoreGraphicsState()
+color(0xE4E0FF).setFill()
+for side in [CGFloat(-1), 1] { page(side, inset: -4, drop: 17).fill() }
+color(0xFAF9FF).setFill()
+for side in [CGFloat(-1), 1] { page(side, inset: 0, drop: 0).fill() }
 
-// Keyhole, centred on the cover (spans y 392...632, midpoint 512).
+// Faint writing lines on each page, mirrored, stopping short of the keyhole.
+color(0xDCD7FC).setFill()
+for y in stride(from: CGFloat(630), through: 420, by: -52) {
+    for side in [CGFloat(-1), 1] {
+        let inner: CGFloat = 92, outer: CGFloat = 214
+        let x = side < 0 ? 512 - outer : 512 + inner
+        NSBezierPath(roundedRect: NSRect(x: x, y: y, width: outer - inner, height: 12), xRadius: 6, yRadius: 6).fill()
+    }
+}
+
+// Spine crease.
+let spine = NSBezierPath()
+spine.move(to: NSPoint(x: 512, y: 700))
+spine.line(to: NSPoint(x: 512, y: 318))
+spine.lineWidth = 6
+color(0xC9C2FA).setStroke()
+spine.stroke()
+
+// Keyhole on the spine, centred on the pages.
 let cx: CGFloat = 512
 let keyhole = NSBezierPath(ovalIn: NSRect(x: cx - 64, y: 504, width: 128, height: 128))
 let stem = NSBezierPath()
