@@ -7,6 +7,8 @@ final class Gate {
     private let lock = NSLock()
     private var unlockedUntil: Date?
     let window: TimeInterval
+    /// Called on the main queue whenever access locks or unlocks (for the menu bar icon).
+    var onChange: (() -> Void)?
 
     init(window: TimeInterval) {
         self.window = window
@@ -20,6 +22,11 @@ final class Gate {
 
     func lockNow() {
         lock.lock(); unlockedUntil = nil; lock.unlock()
+        notify()
+    }
+
+    private func notify() {
+        DispatchQueue.main.async { [weak self] in self?.onChange?() }
     }
 
     /// Returns nil once access is granted, otherwise a message explaining why not.
@@ -55,6 +62,7 @@ final class Gate {
         }
         unlockedUntil = Date().addingTimeInterval(window)
         log("unlocked until \(unlockedUntil!)")
+        notify()
         return nil
     }
 }

@@ -39,7 +39,7 @@ Then open **Day One MCP Plus**. Its setup window walks through three steps:
 2. **Full Disk Access**: click *Open Settings* and turn on Day One MCP Plus.
 3. **Connect your AI app**: *Copy Agent Instructions* and paste them into your agent (Claude Code, ChatGPT, Codex, …) to have it add the server, or copy the `claude mcp add` / `codex mcp add` command or JSON snippet yourself. ChatGPT for Mac runs its agent on Codex, so it reads the same `~/.codex/config.toml`.
 
-Open the app again any time to check status or remove the helper. If an agent tries to read before access is granted, the setup window opens by itself.
+A menu bar icon (closed book = locked, open book = unlocked) shows whether journal access is open, with *Lock Now* and *Open Setup…*; hide it from the setup window. Opening the app again also brings up setup. If an agent tries to read before access is granted, the setup window opens by itself.
 
 The unlock window defaults to 30 minutes: `defaults write com.bhrigu.dayone-mcp-plus unlockMinutes 60` changes it (takes effect when the helper restarts, e.g. `dayone-mcp-plus register`).
 

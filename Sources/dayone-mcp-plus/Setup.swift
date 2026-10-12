@@ -25,7 +25,7 @@ enum Setup {
         }
 
         let app = NSApplication.shared
-        app.setActivationPolicy(.regular)
+        app.setActivationPolicy(.accessory)  // a window, but no Dock icon
         let delegate = SetupDelegate()
         app.delegate = delegate
         DistributedNotificationCenter.default().addObserver(forName: showNotification, object: nil, queue: .main) { _ in
@@ -86,6 +86,9 @@ final class SetupModel: ObservableObject {
     @Published var hasAccess = false
     @Published var message: String?
     @Published var copied: String?
+    @Published var showMenuBarIcon = MenuBar.isEnabled {
+        didSet { MenuBar.setEnabled(showMenuBarIcon) }
+    }
     private var timer: Timer?
     private var hadAccess: Bool?
 
@@ -222,15 +225,18 @@ struct SetupView: View {
             Divider()
 
             HStack {
-                Text("Agents need your Touch ID first. Access stays open \(Config.unlockMinutes) min.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                Toggle("Show in menu bar", isOn: $model.showMenuBarIcon)
+                    .toggleStyle(.switch)
+                    .controlSize(.small)
                 Spacer()
                 if model.helper == .enabled {
                     Button("Remove Helper…") { model.removeHelper() }
                         .controlSize(.small)
                 }
             }
+            Text("Agents need your Touch ID first. Access stays open \(Config.unlockMinutes) min.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
         }
         .padding(24)
         .frame(width: 540)

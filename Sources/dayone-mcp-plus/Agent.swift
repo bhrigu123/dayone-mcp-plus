@@ -13,11 +13,12 @@ enum Agent {
         let gate = Gate(window: unlockMinutes * 60)
         let tools = Tools(journal: Journal(db: Database(path: Config.databasePath)), gate: gate, databasePath: Config.databasePath)
 
-        // A UI-less app (no Dock icon), so it can present Touch ID and handle reopen events.
+        // No Dock icon; just the menu bar item, Touch ID prompts, and reopen events.
         let app = NSApplication.shared
         app.setActivationPolicy(.accessory)
-        let delegate = AgentDelegate()
-        app.delegate = delegate
+        // NSApplication holds its delegate weakly, so keep ours in a static.
+        AgentDelegate.shared.menuBar = Config.databaseOverride == nil ? MenuBar(gate: gate) : nil
+        app.delegate = AgentDelegate.shared
 
         let listener: Int32
         do {
@@ -66,6 +67,9 @@ enum Agent {
 }
 
 private final class AgentDelegate: NSObject, NSApplicationDelegate {
+    static let shared = AgentDelegate()
+    var menuBar: MenuBar?
+
     /// If macOS routes "open the app" to this running agent, show the setup window.
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         Service.openSetup()
