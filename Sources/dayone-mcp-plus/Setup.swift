@@ -41,7 +41,7 @@ extension Setup {
     static func snapshot(to path: String) {
         let app = NSApplication.shared
         app.setActivationPolicy(.prohibited)
-        let view = NSHostingView(rootView: SetupView())
+        let view = NSHostingView(rootView: SetupView(model: SetupModel()))
         view.frame.size = view.fittingSize
         let window = NSWindow(contentRect: view.frame, styleMask: [.titled], backing: .buffered, defer: false)
         window.contentView = view
@@ -60,7 +60,7 @@ private final class SetupDelegate: NSObject, NSApplicationDelegate {
         let window = NSWindow(
             contentRect: .zero, styleMask: [.titled, .closable, .miniaturizable], backing: .buffered, defer: false)
         window.title = "Day One MCP Plus"
-        window.contentView = NSHostingView(rootView: SetupView())
+        window.contentView = NSHostingView(rootView: SetupView(model: SetupModel()))
         window.setContentSize(window.contentView!.fittingSize)
         window.center()
         window.isReleasedWhenClosed = false
@@ -118,7 +118,10 @@ final class SetupModel: ObservableObject {
     }
 
     init() {
-        refresh()
+        // Initial values are set directly (not published) so creating the model never triggers a view update.
+        let access = Service.hasAccessInFreshProcess()
+        _hasAccess = Published(initialValue: access)
+        hadAccess = access
         timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in self?.refresh() }
     }
 
@@ -127,12 +130,13 @@ final class SetupModel: ObservableObject {
     }
 
     func refresh() {
-        helper = Service.status
+        let status = Service.status
+        if status != helper { helper = status }
         let access = Service.hasAccessInFreshProcess()
         // Access was just granted: restart the helper so it picks it up.
-        if hadAccess == false && access && helper == .enabled { Service.restartAgent() }
+        if hadAccess == false && access && status == .enabled { Service.restartAgent() }
         hadAccess = access
-        hasAccess = access
+        if access != hasAccess { hasAccess = access }
     }
 
     func turnOnHelper() {
@@ -167,7 +171,8 @@ final class SetupModel: ObservableObject {
 }
 
 struct SetupView: View {
-    @StateObject private var model = SetupModel()
+    // Created by the caller, outside SwiftUI's update pass (see SetupModel.init).
+    @ObservedObject var model: SetupModel
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
