@@ -91,3 +91,7 @@ swift build
 tests/smoke.sh | python3 tests/summarize.py   # end-to-end MCP test against a fixture database
 scripts/build-icon.sh                         # regenerate the icon after editing scripts/make-icon.swift
 ```
+
+## License
+
+MIT. See [LICENSE](LICENSE).
