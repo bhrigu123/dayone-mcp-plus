@@ -1,5 +1,6 @@
-# Shared settings for the scripts in this directory. Keep LABEL in sync with Config.label.
+# Shared settings for the scripts in this directory. Keep in sync with Config.bundleID / Config.agentLabel.
 LABEL="com.bhrigu.dayone-mcp-plus"
+AGENT_LABEL="$LABEL.agent"
 APP_NAME="Day One MCP Plus"
 EXECUTABLE="dayone-mcp-plus"
 SUPPORT="$HOME/Library/Application Support/DayOneMCPPlus"

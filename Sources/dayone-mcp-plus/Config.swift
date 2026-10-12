@@ -1,8 +1,18 @@
 import Foundation
 
 enum Config {
-    static let label = "com.bhrigu.dayone-mcp-plus"
-    static let version = "0.1.0"
+    static let bundleID = "com.bhrigu.dayone-mcp-plus"
+    /// launchd label of the background agent; its plist ships in Contents/Library/LaunchAgents.
+    static let agentLabel = "com.bhrigu.dayone-mcp-plus.agent"
+    static let version = "0.2.0"
+
+    /// How long one Touch ID approval lasts. `defaults write com.bhrigu.dayone-mcp-plus unlockMinutes 60`
+    static var unlockMinutes: Int {
+        // Inside the app bundle the standard defaults are this domain; elsewhere (dev builds) read it by name.
+        let defaults = Bundle.main.bundleIdentifier == bundleID ? .standard : UserDefaults(suiteName: bundleID)
+        let value = defaults?.integer(forKey: "unlockMinutes") ?? 0
+        return value > 0 ? value : 30
+    }
 
     static var home: String { FileManager.default.homeDirectoryForCurrentUser.path }
 

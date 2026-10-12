@@ -15,7 +15,7 @@ MCP client (Claude, etc.)
 dayone-mcp-plus mcp      ← thin pipe, needs no permissions
    │ Unix socket (~/Library/Application Support/DayOneMCPPlus/agent.sock, owner-only)
    ▼
-Day One MCP Plus.app      ← launchd agent; holds Full Disk Access + the Touch ID gate
+Day One MCP Plus.app     ← background helper; holds Full Disk Access + the Touch ID gate
    │ read-only SQLite
    ▼
 ~/Library/Group Containers/5U8NS4GX82.dayoneapp2/Data/Documents/DayOne.sqlite
@@ -25,20 +25,30 @@ macOS attributes file access to the app that *launched* a process, so an MCP ser
 
 ## Install
 
-Requires macOS 13+, Swift (Xcode or Command Line Tools), and Day One for Mac.
+Requires macOS 13+ and Day One for Mac.
+
+Open **Day One MCP Plus**. Its setup window walks through three steps:
+
+1. **Background helper**: turns on automatically (it appears under System Settings → General → Login Items).
+2. **Full Disk Access**: click *Open Settings* and turn on Day One MCP Plus.
+3. **Connect your AI app**: copy the `claude mcp add …` command or the JSON config snippet.
+
+Open the app again any time to check status or remove the helper. If an agent tries to read before access is granted, the setup window opens by itself.
+
+The unlock window defaults to 30 minutes: `defaults write com.bhrigu.dayone-mcp-plus unlockMinutes 60` changes it (takes effect when the helper restarts, e.g. `dayone-mcp-plus register`).
+
+### From source
+
+Requires Swift (Xcode or Command Line Tools).
 
 ```bash
-scripts/install.sh                     # or: scripts/install.sh --unlock-minutes 60
+scripts/install.sh      # builds, signs, installs to ~/Applications, turns on the helper, opens setup
+scripts/uninstall.sh    # turns off the helper and removes everything
 ```
-
-Then:
-
-1. Give **Day One MCP Plus** Full Disk Access. Until it has it, the app shows a dialog (at launch, and whenever an agent tries to read) with a button to the right Settings pane. Turn it on and choose "Quit & Reopen", or restart it with `launchctl kickstart -k gui/$(id -u)/com.bhrigu.dayone-mcp-plus`.
-2. Add it to your MCP client, e.g. `claude mcp add dayone -s user -- ~/Applications/Day\ One\ MCP\ Plus.app/Contents/MacOS/dayone-mcp-plus mcp`
 
 The app is signed with your first "Developer ID Application" or "Apple Development" certificate (override with `SIGN_IDENTITY=...`), which keeps its Full Disk Access grant across rebuilds. Without a certificate it falls back to ad-hoc signing, and you'll need to toggle Full Disk Access off and on after each rebuild.
 
-Uninstall with `scripts/uninstall.sh`.
+The bundled executable also has a small CLI: `dayone-mcp-plus status | register | unregister | setup`.
 
 ## Releasing
 

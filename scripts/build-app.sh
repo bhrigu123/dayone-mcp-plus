@@ -32,7 +32,7 @@ fi
 
 echo "==> Assembling $APP"
 rm -rf "$APP"
-mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$APP/Contents/Library/LaunchAgents"
 cp "$BUILT" "$APP/Contents/MacOS/$EXECUTABLE"
 cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 cat > "$APP/Contents/Info.plist" <<EOF
@@ -50,6 +50,31 @@ cat > "$APP/Contents/Info.plist" <<EOF
   <key>CFBundleShortVersionString</key><string>$VERSION</string>
   <key>LSMinimumSystemVersion</key><string>13.0</string>
   <key>LSUIElement</key><true/>
+</dict>
+</plist>
+EOF
+
+# The background helper, registered by the app itself via SMAppService.
+cat > "$APP/Contents/Library/LaunchAgents/$AGENT_LABEL.plist" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>$AGENT_LABEL</string>
+  <key>BundleProgram</key><string>Contents/MacOS/$EXECUTABLE</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>$EXECUTABLE</string>
+    <string>agent</string>
+  </array>
+  <key>AssociatedBundleIdentifiers</key>
+  <array>
+    <string>$LABEL</string>
+  </array>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>LimitLoadToSessionType</key><string>Aqua</string>
+  <key>ProcessType</key><string>Interactive</string>
 </dict>
 </plist>
 EOF

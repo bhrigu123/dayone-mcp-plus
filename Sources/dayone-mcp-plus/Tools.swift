@@ -122,8 +122,13 @@ final class Tools {
         case .ok:
             break
         case .noPermission:
+            if Service.hasAccessInFreshProcess() {
+                // Access was granted after this process started; restart (launchd relaunches us).
+                DispatchQueue.global().asyncAfter(deadline: .now() + 0.5) { exit(0) }
+                throw ToolError(message: "Day One MCP Plus was just given Full Disk Access and is restarting. Try again in a few seconds.")
+            }
             AccessPrompt.showIfNeeded()
-            throw ToolError(message: "Day One MCP Plus doesn't have Full Disk Access yet, so it can't read the journal. A dialog on the user's Mac explains how to grant it (System Settings → Privacy & Security → Full Disk Access). Ask the user to do that, then try again.")
+            throw ToolError(message: "Day One MCP Plus doesn't have Full Disk Access yet, so it can't read the journal. Its setup window is now open on the user's Mac; ask them to grant access there, then try again.")
         case .missing:
             throw ToolError(message: "No Day One database found at \(databasePath). Is Day One for Mac installed and opened at least once?")
         }

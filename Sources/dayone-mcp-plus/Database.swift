@@ -39,7 +39,7 @@ final class Database {
 
     private static func accessHint(_ path: String) -> String {
         if FileManager.default.fileExists(atPath: path) || Config.databaseOverride != nil {
-            return "Make sure \"Day One MCP Plus\" has Full Disk Access in System Settings → Privacy & Security, then restart it with: launchctl kickstart -k gui/\(getuid())/\(Config.label)"
+            return "Make sure \"Day One MCP Plus\" has Full Disk Access in System Settings → Privacy & Security, then open the Day One MCP Plus app."
         }
         return "No Day One database at \(path). Is Day One for Mac installed and opened at least once? (If Full Disk Access is missing, the file can also appear absent.)"
     }

@@ -1,18 +1,23 @@
 import AppKit
 
-/// The long-running helper, started by launchd. It is its own "responsible process" for macOS
-/// privacy checks, so Full Disk Access granted to this app covers only this app.
+/// The long-running helper, started by macOS from Contents/Library/LaunchAgents. Its privacy
+/// identity is the app's, so Full Disk Access granted to the app covers it and nothing else.
 enum Agent {
     static func run(unlockMinutes: Double) -> Never {
         signal(SIGPIPE, SIG_IGN)
         try? FileManager.default.createDirectory(atPath: Config.supportDir, withIntermediateDirectories: true)
+        if ProcessInfo.processInfo.environment["XPC_SERVICE_NAME"] == Config.agentLabel {
+            freopen(Config.supportDir + "/agent.log", "a", stderr)
+        }
 
         let gate = Gate(window: unlockMinutes * 60)
         let tools = Tools(journal: Journal(db: Database(path: Config.databasePath)), gate: gate, databasePath: Config.databasePath)
 
-        // A UI-less app (no Dock icon) so it can show the Touch ID sheet and access dialog.
+        // A UI-less app (no Dock icon), so it can present Touch ID and handle reopen events.
         let app = NSApplication.shared
         app.setActivationPolicy(.accessory)
+        let delegate = AgentDelegate()
+        app.delegate = delegate
 
         let listener: Int32
         do {
@@ -52,12 +57,18 @@ enum Agent {
         switch AccessPrompt.check(Config.databasePath) {
         case .ok: log("Day One database is readable")
         case .missing: log("no Day One database at \(Config.databasePath)")
-        case .noPermission:
-            log("no Full Disk Access yet; asking the user")
-            AccessPrompt.showIfNeeded()
+        case .noPermission: log("no Full Disk Access yet")
         }
 
         app.run()
         exit(0)
+    }
+}
+
+private final class AgentDelegate: NSObject, NSApplicationDelegate {
+    /// If macOS routes "open the app" to this running agent, show the setup window.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        Service.openSetup()
+        return false
     }
 }
