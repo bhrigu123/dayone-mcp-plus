@@ -35,9 +35,9 @@ enum AccessPrompt {
         lastShown = Date()
         DispatchQueue.main.async {
             let alert = NSAlert()
-            alert.messageText = "DayOne Unlocked needs Full Disk Access"
+            alert.messageText = "Day One MCP Plus needs Full Disk Access"
             alert.informativeText = """
-                To let AI agents read your Day One journals, turn on DayOne Unlocked in \
+                To let AI agents read your Day One journals, turn on Day One MCP Plus in \
                 System Settings → Privacy & Security → Full Disk Access, then choose “Quit & Reopen” if asked.
 
                 Journal access stays locked behind Touch ID either way.

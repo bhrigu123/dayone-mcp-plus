@@ -1,4 +1,4 @@
-# dayone-unlocked
+# Day One MCP Plus
 
 Read-only MCP access to your [Day One](https://dayoneapp.com) journals on macOS, **gated by Touch ID**, and working even when Day One's password lock is on.
 
@@ -12,10 +12,10 @@ Not affiliated with or endorsed by Day One / Automattic.
 MCP client (Claude, etc.)
    │ stdio
    ▼
-dayone-unlocked mcp      ← thin pipe, needs no permissions
-   │ Unix socket (~/Library/Application Support/DayOneUnlocked/agent.sock, owner-only)
+dayone-mcp-plus mcp      ← thin pipe, needs no permissions
+   │ Unix socket (~/Library/Application Support/DayOneMCPPlus/agent.sock, owner-only)
    ▼
-DayOne Unlocked.app      ← launchd agent; holds Full Disk Access + the Touch ID gate
+Day One MCP Plus.app      ← launchd agent; holds Full Disk Access + the Touch ID gate
    │ read-only SQLite
    ▼
 ~/Library/Group Containers/5U8NS4GX82.dayoneapp2/Data/Documents/DayOne.sqlite
@@ -33,8 +33,8 @@ scripts/install.sh                     # or: scripts/install.sh --unlock-minutes
 
 Then:
 
-1. Give **DayOne Unlocked** Full Disk Access. Until it has it, the app shows a dialog (at launch, and whenever an agent tries to read) with a button to the right Settings pane. Turn it on and choose "Quit & Reopen", or restart it with `launchctl kickstart -k gui/$(id -u)/local.dayone-unlocked.agent`.
-2. Add it to your MCP client, e.g. `claude mcp add dayone -s user -- ~/Applications/DayOne\ Unlocked.app/Contents/MacOS/dayone-unlocked mcp`
+1. Give **Day One MCP Plus** Full Disk Access. Until it has it, the app shows a dialog (at launch, and whenever an agent tries to read) with a button to the right Settings pane. Turn it on and choose "Quit & Reopen", or restart it with `launchctl kickstart -k gui/$(id -u)/local.dayone-mcp-plus.agent`.
+2. Add it to your MCP client, e.g. `claude mcp add dayone -s user -- ~/Applications/Day\ One\ MCP\ Plus.app/Contents/MacOS/dayone-mcp-plus mcp`
 
 The app is ad-hoc signed, so every rebuild changes its signature and macOS drops the Full Disk Access grant; toggle it off and on after reinstalling a new build.
 
@@ -59,11 +59,12 @@ Entries in the trash are excluded. Long entries are truncated to 4000 characters
 
 - Day One's database schema is not a public API; an app update could change it. Everything here is read-only, so the worst case is a broken query, not a damaged journal.
 - Anything an agent reads is sent to that agent's model provider.
-- Logs: `~/Library/Application Support/DayOneUnlocked/agent.log` (no journal content is logged).
+- Logs: `~/Library/Application Support/DayOneMCPPlus/agent.log` (no journal content is logged).
 
 ## Development
 
 ```bash
 swift build
 tests/smoke.sh | python3 tests/summarize.py   # end-to-end MCP test against a fixture database
+scripts/build-icon.sh                         # regenerate the icon after editing scripts/make-icon.swift
 ```

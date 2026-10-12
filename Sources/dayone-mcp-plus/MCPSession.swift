@@ -40,7 +40,7 @@ final class MCPSession {
             return [
                 "protocolVersion": Self.supportedVersions.contains(requested) ? requested : Self.supportedVersions[0],
                 "capabilities": ["tools": ["listChanged": false]],
-                "serverInfo": ["name": "dayone-unlocked", "version": Config.version],
+                "serverInfo": ["name": "dayone-mcp-plus", "version": Config.version],
                 "instructions": "Read-only access to the user's Day One journals. The first read in a while asks the user to approve with Touch ID; if they decline, the tool returns an error, so don't retry in a loop.",
             ] as [String: Any]
         case "ping":

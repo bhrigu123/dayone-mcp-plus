@@ -123,7 +123,7 @@ final class Tools {
             break
         case .noPermission:
             AccessPrompt.showIfNeeded()
-            throw ToolError(message: "DayOne Unlocked doesn't have Full Disk Access yet, so it can't read the journal. A dialog on the user's Mac explains how to grant it (System Settings → Privacy & Security → Full Disk Access). Ask the user to do that, then try again.")
+            throw ToolError(message: "Day One MCP Plus doesn't have Full Disk Access yet, so it can't read the journal. A dialog on the user's Mac explains how to grant it (System Settings → Privacy & Security → Full Disk Access). Ask the user to do that, then try again.")
         case .missing:
             throw ToolError(message: "No Day One database found at \(databasePath). Is Day One for Mac installed and opened at least once?")
         }

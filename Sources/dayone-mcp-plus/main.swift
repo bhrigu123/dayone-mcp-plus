@@ -5,7 +5,7 @@ import Foundation
 func runProxy() -> Never {
     signal(SIGPIPE, SIG_IGN)
     guard let sock = Socket.connect(to: Config.socketPath) else {
-        log("can't reach the DayOne Unlocked agent at \(Config.socketPath). Run scripts/install.sh, or check: launchctl print gui/\(getuid())/\(Config.label)")
+        log("can't reach the Day One MCP Plus agent at \(Config.socketPath). Run scripts/install.sh, or check: launchctl print gui/\(getuid())/\(Config.label)")
         exit(1)
     }
     Thread.detachNewThread {
@@ -27,11 +27,11 @@ func runProxy() -> Never {
 }
 
 let usage = """
-    dayone-unlocked \(Config.version) — read-only MCP access to Day One, gated by Touch ID
+    dayone-mcp-plus \(Config.version) — read-only MCP access to Day One, gated by Touch ID
 
     Usage:
-      dayone-unlocked mcp                         Run as an MCP server over stdio (what MCP clients launch)
-      dayone-unlocked agent [--unlock-minutes N]  Run the background agent (started by launchd)
+      dayone-mcp-plus mcp                         Run as an MCP server over stdio (what MCP clients launch)
+      dayone-mcp-plus agent [--unlock-minutes N]  Run the background agent (started by launchd)
     """
 
 var arguments = Array(CommandLine.arguments.dropFirst())

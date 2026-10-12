@@ -2,10 +2,10 @@
 # End-to-end test against a fixture database: starts an agent, talks MCP to it through `mcp`.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-BIN=.build/debug/dayone-unlocked
+BIN=.build/debug/dayone-mcp-plus
 TMP=$(mktemp -d); trap 'kill $AGENT 2>/dev/null; wait $AGENT 2>/dev/null; rm -rf "$TMP"' EXIT
 sqlite3 "$TMP/fixture.sqlite" < tests/make-fixture.sql
-export DAYONE_UNLOCKED_DB="$TMP/fixture.sqlite" DAYONE_UNLOCKED_SOCKET="$TMP/agent.sock" DAYONE_UNLOCKED_SKIP_AUTH=1
+export DAYONE_MCP_PLUS_DB="$TMP/fixture.sqlite" DAYONE_MCP_PLUS_SOCKET="$TMP/agent.sock" DAYONE_MCP_PLUS_SKIP_AUTH=1
 "$BIN" agent 2>"$TMP/agent.log" & AGENT=$!
 for _ in $(seq 50); do [ -S "$TMP/agent.sock" ] && break; sleep 0.1; done
 

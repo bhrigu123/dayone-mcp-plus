@@ -1,29 +1,41 @@
 #!/bin/bash
-# Builds "DayOne Unlocked.app" into ~/Applications and registers its background agent with launchd.
+# Builds "Day One MCP Plus.app" into ~/Applications and registers its background agent with launchd.
 # Usage: scripts/install.sh [--unlock-minutes N]
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-LABEL="local.dayone-unlocked.agent"
-APP="$HOME/Applications/DayOne Unlocked.app"
-BIN="$APP/Contents/MacOS/dayone-unlocked"
+LABEL="local.dayone-mcp-plus.agent"
+APP="$HOME/Applications/Day One MCP Plus.app"
+BIN="$APP/Contents/MacOS/dayone-mcp-plus"
 PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
-SUPPORT="$HOME/Library/Application Support/DayOneUnlocked"
+SUPPORT="$HOME/Library/Application Support/DayOneMCPPlus"
 MINUTES=30
 [[ "${1:-}" == "--unlock-minutes" && -n "${2:-}" ]] && MINUTES="$2"
 
+# Remove an install from before the rename to dayone-mcp-plus.
+OLD_LABEL="local.dayone-unlocked.agent"
+if [[ -e "$HOME/Library/LaunchAgents/$OLD_LABEL.plist" || -e "$HOME/Applications/DayOne Unlocked.app" ]]; then
+  echo "==> Removing old DayOne Unlocked install"
+  launchctl bootout "gui/$(id -u)/$OLD_LABEL" 2>/dev/null || true
+  rm -rf "$HOME/Library/LaunchAgents/$OLD_LABEL.plist" "$HOME/Applications/DayOne Unlocked.app" \
+    "$HOME/Library/Application Support/DayOneUnlocked"
+  tccutil reset SystemPolicyAllFiles "$OLD_LABEL" >/dev/null 2>&1 || true
+fi
+
 echo "==> Building"
 swift build -c release
-BUILT="$(swift build -c release --show-bin-path)/dayone-unlocked"
+BUILT="$(swift build -c release --show-bin-path)/dayone-mcp-plus"
 
 # Re-signing changes the app's code hash, which voids its Full Disk Access grant,
 # so only replace the app when the binary actually changed.
-if [[ -f "$BIN" ]] && cmp -s "$BUILT" "$SUPPORT/.installed-binary"; then
+if [[ -f "$BIN" ]] && cmp -s "$BUILT" "$SUPPORT/.installed-binary" \
+   && cmp -s Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"; then
   echo "==> App unchanged, keeping existing signature"
   CHANGED=0
 else
   echo "==> Assembling $APP"
-  mkdir -p "$APP/Contents/MacOS" "$SUPPORT"
+  mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$SUPPORT"
+  cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
   cp "$BUILT" "$BIN"
   cp "$BUILT" "$SUPPORT/.installed-binary"
   cat > "$APP/Contents/Info.plist" <<EOF
@@ -32,9 +44,10 @@ else
 <plist version="1.0">
 <dict>
   <key>CFBundleIdentifier</key><string>$LABEL</string>
-  <key>CFBundleName</key><string>DayOne Unlocked</string>
-  <key>CFBundleDisplayName</key><string>DayOne Unlocked</string>
-  <key>CFBundleExecutable</key><string>dayone-unlocked</string>
+  <key>CFBundleName</key><string>Day One MCP Plus</string>
+  <key>CFBundleDisplayName</key><string>Day One MCP Plus</string>
+  <key>CFBundleIconFile</key><string>AppIcon</string>
+  <key>CFBundleExecutable</key><string>dayone-mcp-plus</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleVersion</key><string>$("$BUILT" --version)</string>
   <key>CFBundleShortVersionString</key><string>$("$BUILT" --version)</string>
@@ -76,7 +89,7 @@ cat <<EOF
 
 ==> Installed. Remaining steps:
 
-1. Give "DayOne Unlocked" Full Disk Access. If it doesn't have it yet, the app shows a dialog
+1. Give "Day One MCP Plus" Full Disk Access. If it doesn't have it yet, the app shows a dialog
    that opens the right pane (System Settings → Privacy & Security → Full Disk Access).
    If it isn't listed there, click + and choose: $APP
 EOF
