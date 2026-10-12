@@ -31,7 +31,7 @@ Open **Day One MCP Plus**. Its setup window walks through three steps:
 
 1. **Background helper**: turns on automatically (it appears under System Settings → General → Login Items).
 2. **Full Disk Access**: click *Open Settings* and turn on Day One MCP Plus.
-3. **Connect your AI app**: copy the `claude mcp add …` command or the JSON config snippet.
+3. **Connect your AI app**: *Copy Agent Instructions* and paste them into your agent (Claude Code, Codex, …) to have it add the server, or copy the `claude mcp add` / `codex mcp add` command or JSON snippet yourself.
 
 Open the app again any time to check status or remove the helper. If an agent tries to read before access is granted, the setup window opens by itself.
 

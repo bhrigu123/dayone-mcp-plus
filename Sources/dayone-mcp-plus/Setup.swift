@@ -91,7 +91,28 @@ final class SetupModel: ObservableObject {
 
     let executable = Bundle.main.executablePath ?? "dayone-mcp-plus"
     var claudeCommand: String { "claude mcp add dayone -s user -- \"\(executable)\" mcp" }
+    var codexCommand: String { "codex mcp add dayone -- \"\(executable)\" mcp" }
     var jsonConfig: String { "\"dayone\": { \"command\": \"\(executable)\", \"args\": [\"mcp\"] }" }
+
+    /// For pasting into an AI agent so it adds the server to its own MCP config.
+    var agentInstructions: String {
+        """
+        Add the "Day One MCP Plus" MCP server to your MCP configuration. It's a local stdio server \
+        giving read-only, Touch ID–gated access to my Day One journals.
+
+        - Name: dayone
+        - Command: \(executable)
+        - Arguments: mcp
+
+        Use your usual way of adding a user-level MCP server, for example:
+        - Claude Code: \(claudeCommand)
+        - Codex: \(codexCommand)
+        - Others: add \(jsonConfig) under "mcpServers" in your MCP config file
+
+        Don't change anything else. Then tell me to restart you so it loads. After the restart, call \
+        its access_status tool to confirm it works (that never prompts); reading entries will ask me for Touch ID.
+        """
+    }
 
     init() {
         refresh()
@@ -174,12 +195,15 @@ struct SetupView: View {
                 }
             }
 
-            step(3, "Connect your AI app", done: nil, detail: "Add it as an MCP server.") {
-                EmptyView()
+            step(3, "Connect your AI app", done: nil, detail: "Let your agent do it, or use a command below.") {
+                Button(model.copied == model.agentInstructions ? "Copied" : "Copy Agent Instructions") {
+                    model.copy(model.agentInstructions)
+                }
             }
             VStack(alignment: .leading, spacing: 8) {
                 copyRow("Claude Code", model.claudeCommand)
-                copyRow("JSON config", model.jsonConfig)
+                copyRow("Codex", model.codexCommand)
+                copyRow("Other apps", model.jsonConfig)
             }
             .padding(.leading, 34)
 
