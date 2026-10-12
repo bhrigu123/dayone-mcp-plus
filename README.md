@@ -33,12 +33,16 @@ scripts/install.sh                     # or: scripts/install.sh --unlock-minutes
 
 Then:
 
-1. Give **Day One MCP Plus** Full Disk Access. Until it has it, the app shows a dialog (at launch, and whenever an agent tries to read) with a button to the right Settings pane. Turn it on and choose "Quit & Reopen", or restart it with `launchctl kickstart -k gui/$(id -u)/local.dayone-mcp-plus.agent`.
+1. Give **Day One MCP Plus** Full Disk Access. Until it has it, the app shows a dialog (at launch, and whenever an agent tries to read) with a button to the right Settings pane. Turn it on and choose "Quit & Reopen", or restart it with `launchctl kickstart -k gui/$(id -u)/com.bhrigu.dayone-mcp-plus`.
 2. Add it to your MCP client, e.g. `claude mcp add dayone -s user -- ~/Applications/Day\ One\ MCP\ Plus.app/Contents/MacOS/dayone-mcp-plus mcp`
 
-The app is ad-hoc signed, so every rebuild changes its signature and macOS drops the Full Disk Access grant; toggle it off and on after reinstalling a new build.
+The app is signed with your first "Developer ID Application" or "Apple Development" certificate (override with `SIGN_IDENTITY=...`), which keeps its Full Disk Access grant across rebuilds. Without a certificate it falls back to ad-hoc signing, and you'll need to toggle Full Disk Access off and on after each rebuild.
 
 Uninstall with `scripts/uninstall.sh`.
+
+## Releasing
+
+`scripts/release.sh` builds a Developer ID–signed, notarized zip in `dist/` that others can install without Gatekeeper warnings. It needs a Developer ID Application certificate and notarization credentials; see the comments at the top of the script for the one-time setup.
 
 ## Tools
 

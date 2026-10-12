@@ -1,7 +1,7 @@
 import Foundation
 
 enum Config {
-    static let label = "local.dayone-mcp-plus.agent"
+    static let label = "com.bhrigu.dayone-mcp-plus"
     static let version = "0.1.0"
 
     static var home: String { FileManager.default.homeDirectoryForCurrentUser.path }

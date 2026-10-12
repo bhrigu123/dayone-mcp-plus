@@ -36,12 +36,7 @@ enum AccessPrompt {
         DispatchQueue.main.async {
             let alert = NSAlert()
             alert.messageText = "Day One MCP Plus needs Full Disk Access"
-            alert.informativeText = """
-                To let AI agents read your Day One journals, turn on Day One MCP Plus in \
-                System Settings → Privacy & Security → Full Disk Access, then choose “Quit & Reopen” if asked.
-
-                Journal access stays locked behind Touch ID either way.
-                """
+            alert.informativeText = "Turn it on in Privacy & Security → Full Disk Access to let AI agents read your journals."
             alert.addButton(withTitle: "Open System Settings")
             alert.addButton(withTitle: "Not Now")
             NSApp.activate(ignoringOtherApps: true)

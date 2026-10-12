@@ -40,7 +40,7 @@ final class Gate {
         var failure: Error?
         context.evaluatePolicy(
             .deviceOwnerAuthentication,
-            localizedReason: "let an AI agent read your Day One journals"
+            localizedReason: "give AI agents access to your journals"
         ) { success, error in
             granted = success
             failure = error

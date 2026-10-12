@@ -1,64 +1,31 @@
 #!/bin/bash
-# Builds "Day One MCP Plus.app" into ~/Applications and registers its background agent with launchd.
+# Builds and signs "Day One MCP Plus.app" into ~/Applications and registers its background agent.
 # Usage: scripts/install.sh [--unlock-minutes N]
 set -euo pipefail
 cd "$(dirname "$0")/.."
+source scripts/common.sh
 
-LABEL="local.dayone-mcp-plus.agent"
-APP="$HOME/Applications/Day One MCP Plus.app"
-BIN="$APP/Contents/MacOS/dayone-mcp-plus"
+APP="$HOME/Applications/$APP_NAME.app"
+BIN="$APP/Contents/MacOS/$EXECUTABLE"
 PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
-SUPPORT="$HOME/Library/Application Support/DayOneMCPPlus"
 MINUTES=30
 [[ "${1:-}" == "--unlock-minutes" && -n "${2:-}" ]] && MINUTES="$2"
+DOMAIN="gui/$(id -u)"
 
-# Remove an install from before the rename to dayone-mcp-plus.
-OLD_LABEL="local.dayone-unlocked.agent"
-if [[ -e "$HOME/Library/LaunchAgents/$OLD_LABEL.plist" || -e "$HOME/Applications/DayOne Unlocked.app" ]]; then
-  echo "==> Removing old DayOne Unlocked install"
-  launchctl bootout "gui/$(id -u)/$OLD_LABEL" 2>/dev/null || true
-  rm -rf "$HOME/Library/LaunchAgents/$OLD_LABEL.plist" "$HOME/Applications/DayOne Unlocked.app" \
-    "$HOME/Library/Application Support/DayOneUnlocked"
-  tccutil reset SystemPolicyAllFiles "$OLD_LABEL" >/dev/null 2>&1 || true
-fi
+# Remove installs from before the rename and the move to a signed bundle identifier.
+for OLD in local.dayone-unlocked.agent local.dayone-mcp-plus.agent; do
+  if [[ -e "$HOME/Library/LaunchAgents/$OLD.plist" ]]; then
+    echo "==> Removing previous install ($OLD)"
+    launchctl bootout "$DOMAIN/$OLD" 2>/dev/null || true
+    rm -f "$HOME/Library/LaunchAgents/$OLD.plist"
+    tccutil reset SystemPolicyAllFiles "$OLD" >/dev/null 2>&1 || true
+  fi
+done
+rm -rf "$HOME/Applications/DayOne Unlocked.app" "$HOME/Library/Application Support/DayOneUnlocked"
 
-echo "==> Building"
-swift build -c release
-BUILT="$(swift build -c release --show-bin-path)/dayone-mcp-plus"
-
-# Re-signing changes the app's code hash, which voids its Full Disk Access grant,
-# so only replace the app when the binary actually changed.
-if [[ -f "$BIN" ]] && cmp -s "$BUILT" "$SUPPORT/.installed-binary" \
-   && cmp -s Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"; then
-  echo "==> App unchanged, keeping existing signature"
-  CHANGED=0
-else
-  echo "==> Assembling $APP"
-  mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$SUPPORT"
-  cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
-  cp "$BUILT" "$BIN"
-  cp "$BUILT" "$SUPPORT/.installed-binary"
-  cat > "$APP/Contents/Info.plist" <<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>CFBundleIdentifier</key><string>$LABEL</string>
-  <key>CFBundleName</key><string>Day One MCP Plus</string>
-  <key>CFBundleDisplayName</key><string>Day One MCP Plus</string>
-  <key>CFBundleIconFile</key><string>AppIcon</string>
-  <key>CFBundleExecutable</key><string>dayone-mcp-plus</string>
-  <key>CFBundlePackageType</key><string>APPL</string>
-  <key>CFBundleVersion</key><string>$("$BUILT" --version)</string>
-  <key>CFBundleShortVersionString</key><string>$("$BUILT" --version)</string>
-  <key>LSMinimumSystemVersion</key><string>13.0</string>
-  <key>LSUIElement</key><true/>
-</dict>
-</plist>
-EOF
-  codesign --force --sign - --identifier "$LABEL" "$APP"
-  CHANGED=1
-fi
+launchctl bootout "$DOMAIN/$LABEL" 2>/dev/null || true
+mkdir -p "$HOME/Applications"
+scripts/build-app.sh "$HOME/Applications"
 
 echo "==> Registering launch agent"
 mkdir -p "$SUPPORT" "$(dirname "$PLIST")"
@@ -82,27 +49,18 @@ cat > "$PLIST" <<EOF
 </dict>
 </plist>
 EOF
-launchctl bootout "gui/$(id -u)/$LABEL" 2>/dev/null || true
-launchctl bootstrap "gui/$(id -u)" "$PLIST"
+launchctl bootstrap "$DOMAIN" "$PLIST"
 
 cat <<EOF
 
-==> Installed. Remaining steps:
+==> Installed.
 
-1. Give "Day One MCP Plus" Full Disk Access. If it doesn't have it yet, the app shows a dialog
-   that opens the right pane (System Settings → Privacy & Security → Full Disk Access).
-   If it isn't listed there, click + and choose: $APP
-EOF
-if [[ "$CHANGED" == 1 ]]; then
-  echo "   (The app was rebuilt; if it was already listed, switch it off and on again.)"
-fi
-cat <<EOF
-   If Settings doesn't offer "Quit & Reopen", restart the agent:
-     launchctl kickstart -k gui/$(id -u)/$LABEL
+If $APP_NAME doesn't have Full Disk Access yet, it shows a dialog that opens the right
+Settings pane. If Settings doesn't offer "Quit & Reopen", restart it with:
+  launchctl kickstart -k $DOMAIN/$LABEL
 
-2. Add the MCP server to your client, e.g. Claude Code:
-     claude mcp add dayone -s user -- "$BIN" mcp
-
-   or in a JSON config (Claude Desktop and others):
-     "dayone": { "command": "$BIN", "args": ["mcp"] }
+Add it to your MCP client, e.g. Claude Code:
+  claude mcp add dayone -s user -- "$BIN" mcp
+or in a JSON config (Claude Desktop and others):
+  "dayone": { "command": "$BIN", "args": ["mcp"] }
 EOF
